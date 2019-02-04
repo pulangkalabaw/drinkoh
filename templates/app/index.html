@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static 'app/css/bootstrap4.min.css' %}">
+    <style media="screen">
+    #a { cursor: pointer; }
+    .all-cards-holder {
+        display: inline;
+    }
+    .all-cards {
+        margin: 5px;
+        padding: 10px;
+        height: 100px;
+        /* line-height: 100px; */
+        text-align: center;
+        border: 1px solid rgba(0,0,0,.125);
+        word-wrap: break-word;
+    }
+    </style>
+</head>
+<body>
+    <div class="">
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Important: {% endif %}
+                {{ message }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if rem_cards|length != 0 %}
+        <a id="a" onclick="draw()">Draw</a>
+        {% else %}
+        <a id="a" href="{% url 'init' %}">Restart</a>
+        {% endif %}
+        <hr>
+
+        <h4>All cards</h4>
+        <div class="row">
+            {% for all in all_cards %}
+            <div class="col-md-3">
+                <div class="all-cards" style="margin: 10px;">
+                    {{ all.m }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+
+        <h4>Remaining cards</h4>
+        <ul id="remaining">
+        </ul>
+
+
+        <h4>Drawed cards</h4>
+        <ul id="drawed">
+        </ul>
+    </div>
+    {% load staticfiles %}
+    <script src="{% static 'app/js/jquery-3.1.0.min.js' %}"></script>
+    <script type="text/javascript">
+    getAllRemaining()
+    getAllDrawed()
+
+    function draw () {
+        $.ajax({
+            url: "{% url 'draw' %}",
+            dataType: 'json',
+            success: function (data) {
+                getAllRemaining()
+                getAllDrawed()
+                if (data.message <= 0) {
+                    $("#a").attr("href", "{% url 'init' %}")
+                    $("#a").text("Restart")
+                }
+            }
+        });
+    }
+
+    function getAllRemaining () {
+        $.ajax({
+            url: "{% url 'remaining' %}",
+            dataType: 'json',
+            success: function (data) {
+                remaining = '<div class="row">'
+                for (var i = 0; i < data.length; i++) {
+                    remaining += '<div class="col-md-3">' +
+                        '<div class="all-cards">' + data[i].m  +'</div></div>'
+                }
+                remaining += '</div>'
+                $("#remaining").html(remaining)
+
+
+            }
+        });
+    }
+
+    function getAllDrawed () {
+        $.ajax({
+            url: "{% url 'drawed' %}",
+            dataType: 'json',
+            success: function (data) {
+                drawed = '<div class="row">'
+                for (var i = 0; i < data.length; i++) {
+                    drawed += '<div class="col-md-3">' +
+                        '<div class="all-cards">' + data[i].m  +'</div></div>'
+                }
+                drawed += '</div>'
+                $("#drawed").html(drawed)
+            }
+        });
+    }
+
+    </script>
+
+
+</body>
+</html>
